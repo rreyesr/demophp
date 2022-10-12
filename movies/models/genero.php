@@ -1,7 +1,7 @@
 <?php
     require_once('mysqlconnection.php');
 
-    class Clasificacion
+    class Genero
     {
         private $id;
         private $descripcion;
@@ -30,7 +30,7 @@
         public static function getAllClasificacion()
         {
             $list = array();
-            $opcion = 1;
+            $opcion = 2;
             $idPelicula = 'NULL';
             $titulo = 'NULL';
             $anio = 'NULL';
@@ -42,7 +42,7 @@
             $command->execute();
             $command->bind_result($id,$descripcion);
             while ($command->fetch()) {
-				array_push($list, new Clasificacion($id, $descripcion));
+				array_push($list, new Genero($id, $descripcion));
 			}
             mysqli_stmt_close($command);
             $conexion->close();
