@@ -30,15 +30,9 @@
         public static function getAllClasificacion()
         {
             $list = array();
-            $opcion = 2;
-            $idPelicula = 'NULL';
-            $titulo = 'NULL';
-            $anio = 'NULL';
-            $sinopsis = 'NULL';
-            $idClasificacion = 'NULL';
-            $idGenero = 'NULL';      
+            $opcion = 2;   
             $conexion = MySqlConnection::getConnection();            
-            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',' . $idPelicula . ',' . $titulo . ',' . $anio . ',' . $sinopsis . ',' . $idClasificacion . ',' . $idGenero . ')');
+            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',NULL,NULL,NULL,NULL,NULL,NULL)');
             $command->execute();
             $command->bind_result($id,$descripcion);
             while ($command->fetch()) {
@@ -65,7 +59,7 @@
                 array_push($list, json_decode($item->toJson()));
             }
             echo json_encode(array(
-                'clasificaciones' => $list
+                'generos' => $list
             ));
         }
     }

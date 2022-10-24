@@ -30,15 +30,9 @@
         public static function getAllClasificacion()
         {
             $list = array();
-            $opcion = 1;
-            $idPelicula = 'NULL';
-            $titulo = 'NULL';
-            $anio = 'NULL';
-            $sinopsis = 'NULL';
-            $idClasificacion = 'NULL';
-            $idGenero = 'NULL';      
+            $opcion = 1;    
             $conexion = MySqlConnection::getConnection();            
-            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',' . $idPelicula . ',' . $titulo . ',' . $anio . ',' . $sinopsis . ',' . $idClasificacion . ',' . $idGenero . ')');
+            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',NULL,NULL,NULL,NULL,NULL,NULL)');
             $command->execute();
             $command->bind_result($id,$descripcion);
             while ($command->fetch()) {
