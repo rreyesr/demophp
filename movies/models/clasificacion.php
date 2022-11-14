@@ -19,6 +19,29 @@
                 $this->descripcion = '';
             }
 
+            if(func_num_args() == 1)
+            {
+                $idGenero = func_get_arg(0);
+                $opcion = 10;
+                $conexion = MySqlConnection::getConnection();
+                $command = $conexion->prepare('call peliculasGestionSP(' . $opcion .',NULL,NULL,NULL,NULL,?,NULL)');
+                $command->bind_param('i',$idGenero);
+                $command->execute();
+                $command->bind_result($id,$descripcion);
+                $found = $command->fetch();
+                mysqli_stmt_close($command);
+                $conexion->close();
+                if($found)
+                {
+                    $this->id = $id;
+                    $this->description = $descripcion;
+                }
+                else
+                {
+                    echo 'No se encontro clasificacion';
+                }
+            }
+
             if(func_num_args()==2)
             {
                 $arguments = func_get_args();
@@ -58,7 +81,7 @@
             {
                 array_push($list, json_decode($item->toJson()));
             }
-            echo json_encode(array(
+            return json_encode(array(
                 'clasificaciones' => $list
             ));
         }

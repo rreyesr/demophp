@@ -2,6 +2,7 @@
     require_once('mysqlconnection.php');
     require_once('clasificacion.php');
     require_once('genero.php');
+    require_once('exeption/recordnotfoundexception.php');
 
     class Pelicula
     {
@@ -41,34 +42,29 @@
             if(func_num_args() == 1)
             {
                 $opcion = 8;
-                $list = array();
-                $tituloP = func_get_arg(0);
+                $idPeliculaP = func_get_arg(0);
                 $conexion = MySqlConnection::getConnection();
-                $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,?,NULL,NULL,NULL,NULL)');
-                echo $tituloP . '<br>';
-                $command->bind_param('s', $tituloP);
+                $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',?,NULL,NULL,NULL,NULL,NULL)');
+                $command->bind_param('i', $idPeliculaP);
                 $command->execute();
                 $command->bind_result($idPelicula, $titulo, $anio, $sinopsis, $idClasificacion, $cDescripcion, $idGenero, $gDescripcion);
                 $found = $command->fetch();
+                mysqli_stmt_close($command);
+                $conexion->close();
                 if($found)
                 {
-                    while($command->fetch())
-                    {
-                        $this->idPelicula = $idPelicula;
-                        $this->titulo = $titulo; 
-                        $this->anio = $anio;
-                        $this->sinopsis = $sinopsis;
-                        $this->clasificacion = new Clasificacion($idClasificacion, $cDescripcion);
-                        $this->genero = New Genero($idGenero, $gDescripcion);
-                    }
-                    //echo $list;
+                    $this->idPelicula = $idPelicula;
+                    $this->titulo = $titulo; 
+                    $this->anio = $anio;
+                    $this->sinopsis = $sinopsis;
+                    $this->clasificacion = new Clasificacion($idClasificacion, $cDescripcion);
+                    $this->genero = New Genero($idGenero, $gDescripcion);
                 }
                 else
                 {
-                    echo 'No se encontraron resultados';
+                    throw new RecordNotFoundException();
+                   // echo 'No se encontraron resultados';
                 }
-                mysqli_stmt_close($command);
-                $conexion->close();                
             }
 
             if(func_num_args() == 6)
@@ -92,7 +88,7 @@
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
-            echo $resultado;
+            return $resultado;
         }
 
         public function editar()
@@ -104,8 +100,7 @@
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
-            echo $resultado;
-
+            return $resultado;
         }
 
         public function eliminar()
@@ -116,13 +111,13 @@
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
-            echo $resultado;
+            return $resultado;
         }
 
-        public function getAll()
+        public static function getAll()
         {
             $list = array();
-            $opcion=8;
+            $opcion=4;
             $conexion = MySqlConnection::getConnection();
             $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,NULL,NULL,NULL,NULL,NULL)');
             $command->execute();
@@ -140,26 +135,24 @@
 
         public function toJson()
         {
-            echo json_encode(
-                array(
-                    'id' => $this->idPelicula,
+            return json_encode(array(
+                    'idPelicula' => $this->idPelicula,
                     'titulo' => $this->titulo,
                     'anio' => $this->anio,
                     'sinopsis' => $this->sinopsis,
                     'clasificacion' => json_decode($this->clasificacion->toJson()),
                     'genero' => json_decode($this->genero->toJson())
-                )
-            );
+                ));
         }
 
-        public function allJson()
+        public static function allJson()
         {
             $list = array();
             foreach(self::getAll() as $item)
             {
                 array_push($list, json_decode($item->toJson()));
             }
-            echo json_encode(
+            return json_encode(
                 array(
                     'peliculas' => $list
                 ));

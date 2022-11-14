@@ -1,6 +1,6 @@
 {
 	"server": "localhost",
 	"database" : "peliculas",
-	"user" : "",
+	"user" : "root",
 	"password" : ""
 }
