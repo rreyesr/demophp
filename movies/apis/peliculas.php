@@ -34,14 +34,21 @@
 
     if ($_SERVER['REQUEST_METHOD'] == "POST") 
     {
-        $_POST = json_decode(file_get_contents('php://input'),true);
+        
+        //$_POST = json_decode(file_get_contents('php://input'),true);
         //echo json_encode($_POST);
-
+        //$_POST = $_REQUEST;
+        //var_dump($_POST);
+        //var_dump($_REQUEST);
+        //echo $_POST;
+        //var_dump($_FILES['image']['name']);
         if(isset($_POST['titulo']) && 
             isset($_POST['anio']) && 
             isset($_POST['sinopsis']) && 
             isset($_POST['idClasificacion']) && 
-            isset($_POST['idGenero']))
+            isset($_POST['idGenero']) //&&
+            //isset($_FILES['image'])
+            )
         {
             $error = false;
 
@@ -80,36 +87,38 @@
                 $p->setSinopsis($_POST['sinopsis']);
                 $p->setClasificacion($_POST['idClasificacion']);
                 $p->setGenero($_POST['idGenero']);
+                $p->setImage($_FILES['image']['name']);
 
-                if($p->agregar())
-                {
-                    echo json_encode(array(
-                        'status' => 200,
-                        'message' => 'Pelicula agregada con exito'
-                    ));
-                }
-                else
+                $ruta = $p->getRuta().$_FILES['image']['name'];
+                $file = $_FILES['image']['tmp_name'];
+                
+
+                if(file_exists($ruta))
                 {
                     echo json_encode(array(
                         'status' => 500,
-                        'message' => 'Se tuvo un error al intentar guardar'
-                    ));
+                        'errorMessage' => 'El nombre del archivo ya existe!'
+                    ));                    
                 }
-            }
-            else
-            {
-                echo json_encode(array(
-                    'estatus' => 404,
-                    'message' => 'No se encontro clasificacion o genero'
-                ));
-            }            
-        }
-        else
-        {
-            echo json_encode(array(
-                'status' => 500,
-                'message' => 'Falta algun parametro'
-            ));
+                else
+                {
+                    if($p->agregar())
+                    {
+                        move_uploaded_file($file, $ruta);
+                        echo json_encode(array(
+                            'status' => 200,
+                            'message' => 'Pelicula agregada con exito'
+                        ));
+                    }
+                    else
+                    {
+                        echo json_encode(array(
+                            'status' => 500,
+                            'message' => 'Se tuvo un error al intentar guardar'
+                        ));
+                    }
+                }
+            }          
         }
     }
 
@@ -186,13 +195,6 @@
                 }
                 
 
-            }
-            else
-            {
-                echo json_encode(array(
-                    'estatus' => 404,
-                    'message' => 'No se encontro genero o clasificacion'
-                ));
             }
         }
         else

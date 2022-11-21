@@ -24,7 +24,7 @@
                 $idGenero = func_get_arg(0);
                 $opcion = 9;
                 $conexion = MySqlConnection::getConnection();
-                $command = $conexion->prepare('call peliculasGestionSP(' . $opcion .',NULL,NULL,NULL,NULL,NULL,?)');
+                $command = $conexion->prepare('call peliculasGestionSP(' . $opcion .',NULL,NULL,NULL,NULL,NULL,?,NULL)');
                 $command->bind_param('i',$idGenero);
                 $command->execute();
                 $command->bind_result($id,$descripcion);
@@ -38,7 +38,7 @@
                 }
                 else
                 {
-                    echo 'No se encontraron genero';
+                    throw new RecordNotFoundException();
                 }
             }
 
@@ -53,9 +53,9 @@
         public static function getAllClasificacion()
         {
             $list = array();
-            $opcion = 2;   
+            $opcion = 1;   
             $conexion = MySqlConnection::getConnection();            
-            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',NULL,NULL,NULL,NULL,NULL,NULL)');
+            $command = $conexion->prepare('call peliculasGestionSP (' . $opcion . ',NULL,NULL,NULL,NULL,NULL,NULL,NULL)');
             $command->execute();
             $command->bind_result($id,$descripcion);
             while ($command->fetch()) {

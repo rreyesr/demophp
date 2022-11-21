@@ -12,6 +12,7 @@
         private $sinopsis;
         private $clasificacion;
         private $genero;
+        private $image;
 
         public function setId($value){ $this->idPelicula = $value; }
         public function getId(){ return $this->idPelicula; }
@@ -24,7 +25,10 @@
         public function setClasificacion($value){ $this->clasificacion = $value; }
         public function getClasificacion(){ return $this->clasificacion; }
         public function setGenero($value){ $this->genero = $value; }
-        public function getGenero(){return $this->genero; }
+        public function getGenero(){ return $this->genero; }
+        public function setImage($value){ $this->image = $value; }
+        public function getImage(){ return $this->image; }
+        public function getRuta(){ return $_SERVER['DOCUMENT_ROOT'].'/movies/client/images/'; }
 
         public function __construct()
         {
@@ -36,6 +40,7 @@
                 $this->sinopsis = '';
                 $this->clasificacion = new Clasificacion();
                 $this->genero = new Genero();
+                $this->image = '';
 
             }
             
@@ -44,10 +49,10 @@
                 $opcion = 8;
                 $idPeliculaP = func_get_arg(0);
                 $conexion = MySqlConnection::getConnection();
-                $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',?,NULL,NULL,NULL,NULL,NULL)');
+                $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',?,NULL,NULL,NULL,NULL,NULL,NULL)');
                 $command->bind_param('i', $idPeliculaP);
                 $command->execute();
-                $command->bind_result($idPelicula, $titulo, $anio, $sinopsis, $idClasificacion, $cDescripcion, $idGenero, $gDescripcion);
+                $command->bind_result($idPelicula, $titulo, $anio, $sinopsis, $idClasificacion, $cDescripcion, $idGenero, $gDescripcion, $image);
                 $found = $command->fetch();
                 mysqli_stmt_close($command);
                 $conexion->close();
@@ -59,6 +64,7 @@
                     $this->sinopsis = $sinopsis;
                     $this->clasificacion = new Clasificacion($idClasificacion, $cDescripcion);
                     $this->genero = New Genero($idGenero, $gDescripcion);
+                    $this->image = $image;
                 }
                 else
                 {
@@ -67,7 +73,7 @@
                 }
             }
 
-            if(func_num_args() == 6)
+            if(func_num_args() == 7)
             {
                 $parametros = func_get_args();            
                 $this->idPelicula = $parametros[0];
@@ -76,6 +82,7 @@
                 $this->sinopsis = $parametros[3];
                 $this->clasificacion = $parametros[4];
                 $this->genero = $parametros[5];
+                $this->image = $parametros[6];
             }
         }
 
@@ -83,8 +90,8 @@
         {
             $opcion = 5;
             $conexion = MySqlConnection::getConnection();
-            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,?,?,?,?,?)');
-            $command->bind_param('sssii',$this->titulo, $this->anio, $this->sinopsis, $this->clasificacion,$this->genero);
+            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,?,?,?,?,?,?)');
+            $command->bind_param('sssiis',$this->titulo, $this->anio, $this->sinopsis, $this->clasificacion,$this->genero, $this->image);
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
@@ -95,8 +102,8 @@
         {
             $opcion = 6;
             $conexion = MySqlConnection::getConnection();
-            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',?,?,?,?,?,?)');
-            $command->bind_param('isssii',$this->idPelicula, $this->titulo, $this->anio, $this->sinopsis, $this->clasificacion,$this->genero);
+            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',?,?,?,?,?,?,?)');
+            $command->bind_param('isssiis',$this->idPelicula, $this->titulo, $this->anio, $this->sinopsis, $this->clasificacion,$this->genero, $this->image);
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
@@ -107,7 +114,7 @@
         {
             $opcion = 7;
             $conexion = MySqlConnection::getConnection();
-            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .','.$this->idPelicula.',NULL,NULL,NULL,NULL,NULL)');
+            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .','.$this->idPelicula.',NULL,NULL,NULL,NULL,NULL,NULL)');
             $resultado = $command->execute();
             mysqli_stmt_close($command);
             $conexion->close();
@@ -119,14 +126,14 @@
             $list = array();
             $opcion=4;
             $conexion = MySqlConnection::getConnection();
-            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,NULL,NULL,NULL,NULL,NULL)');
+            $command = $conexion->prepare('call peliculasGestionSP('. $opcion .',NULL,NULL,NULL,NULL,NULL,NULL,NULL)');
             $command->execute();
-            $command->bind_result($idPelicula, $titulo, $anio, $sinopsis, $idClasificacion, $cDescripcion, $idGenero, $gDescripcion);
+            $command->bind_result($idPelicula, $titulo, $anio, $sinopsis, $idClasificacion, $cDescripcion, $idGenero, $gDescripcion, $image);
             while($command->fetch())
             {
                 $clasificacion = new Clasificacion($idClasificacion, $cDescripcion);
                 $genero = new Genero($idGenero, $gDescripcion);
-                array_push($list, new Pelicula($idPelicula, $titulo, $anio, $sinopsis, $clasificacion, $genero));
+                array_push($list, new Pelicula($idPelicula, $titulo, $anio, $sinopsis, $clasificacion, $genero, $image));
             }            
             mysqli_stmt_close($command);
             $conexion->close();
@@ -141,7 +148,8 @@
                     'anio' => $this->anio,
                     'sinopsis' => $this->sinopsis,
                     'clasificacion' => json_decode($this->clasificacion->toJson()),
-                    'genero' => json_decode($this->genero->toJson())
+                    'genero' => json_decode($this->genero->toJson()),
+                    'image' => $this->image
                 ));
         }
 
